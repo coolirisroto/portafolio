@@ -163,36 +163,42 @@ $(window).on("load",function (){
 
     $('#contact-form').on('submit', function (e) {
         if (!e.isDefaultPrevented()) {
-            var url = 'https://sbgt0lceo1.execute-api.us-east-1.amazonaws.com/prod/sendmail';
+            const SITE_KEY = "6LcOZNQUAAAAAP7qe6lw51i7ARr1znhxsxOUE9uL";
             var serializeData = $(this).serializeArray();
-            const data  = {
-                name: serializeData[0].value,
-                email: serializeData[1].value,
-                subject: serializeData[2].value,
-                message: serializeData[3].value
-            }
-            console.log(data)
-            fetch(url, {
-              method: 'POST', // or 'PUT'
-              body: JSON.stringify(data), // data can be `string` or {object}!
-              headers:{
-                'Content-Type': 'application/json',
-                'x-api-key': 'YC67CwGmGr6szp5uDVCSL2xGcGKWd9x39QO6d6KB'
-              }
-            }).then(res => res.json())
-            .catch(error => console.error('Error:', error))
-            .then(response => {
-                var messageAlert = 'alert-success';
-                var messageText = "Email sent successfully";
-
-                var alertBox = '<div class="alert ' + messageAlert + ' alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + messageText + '</div>';
-                if (messageAlert && messageText) {
-                    $('#contact-form').find('.messages').html(alertBox);
-                    $('#contact-form')[0].reset();
-                }
-                console.log('Success:', response)
+            grecaptcha.ready(function() {
+                grecaptcha.execute(SITE_KEY, {action: 'contact_form'}).then(function(token) {
+                    //$('#contact-form').prepend('<input type="hidden" name="token" value="' + token + '">');
+                    //$('#contact-form').prepend('<input type="hidden" name="action" value="contact_form">');
+                    var url = 'https://sbgt0lceo1.execute-api.us-east-1.amazonaws.com/prod/sendmail';
+                    const data  = {
+                        name: serializeData[0].value,
+                        email: serializeData[1].value,
+                        subject: serializeData[2].value,
+                        message: serializeData[3].value,
+                        action: 'contact_form',
+                        token
+                    }
+                    fetch(url, {
+                      method: 'POST', // or 'PUT'
+                      body: JSON.stringify(data), // data can be `string` or {object}!
+                      headers:{
+                        'Content-Type': 'application/json',
+                        'x-api-key': 'YC67CwGmGr6szp5uDVCSL2xGcGKWd9x39QO6d6KB'
+                      }
+                    }).then(res => res.json())
+                    .catch(error => console.error('Error:', error))
+                    .then(response => {
+                        var messageAlert = 'alert-success';
+                        var messageText = "Email sent successfully";
+        
+                        var alertBox = '<div class="alert ' + messageAlert + ' alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + messageText + '</div>';
+                        if (messageAlert && messageText) {
+                            $('#contact-form').find('.messages').html(alertBox);
+                            $('#contact-form')[0].reset();
+                        }
+                    });                    
+                });
             });
-
 /*             $.ajax({
                 type: "POST",
                 url: url,
